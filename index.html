@@ -1,0 +1,534 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ip.iii.vg - IP Lookup Tool</title>
+    <style>
+        :root {
+            --bg-color: #f5f5f5;
+            --text-color: #333;
+            --panel-bg: #fff;
+            --panel-border: #ddd;
+            --header-bg: #666;
+            --header-text: #fff;
+            --accent-color: #555;
+            --link-color: #555;
+            --hover-color: #333;
+            --input-bg: #fff;
+            --input-border: #ccc;
+        }
+
+        .dark-mode {
+            --bg-color: #222;
+            --text-color: #eee;
+            --panel-bg: #333;
+            --panel-border: #444;
+            --header-bg: #444;
+            --header-text: #fff;
+            --accent-color: #888;
+            --link-color: #aaa;
+            --hover-color: #fff;
+            --input-bg: #444;
+            --input-border: #555;
+        }
+
+        body {
+            font-family: Arial, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            margin: 0;
+            padding: 0;
+            transition: background-color 0.3s, color 0.3s;
+        }
+
+        #container {
+            width: 800px;
+            margin: 0 auto;
+            padding: 10px;
+        }
+
+        #header {
+            background-color: var(--header-bg);
+            color: var(--header-text);
+            padding: 10px;
+            margin-bottom: 15px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        #header h1 {
+            margin: 0;
+            font-size: 18px;
+        }
+
+        .mode-toggle {
+            background: none;
+            border: none;
+            color: var(--header-text);
+            cursor: pointer;
+            font-size: 12px;
+        }
+
+        .panel {
+            background-color: var(--panel-bg);
+            border: 1px solid var(--panel-border);
+            margin-bottom: 15px;
+            padding: 10px;
+        }
+
+        .panel h2 {
+            background-color: var(--header-bg);
+            color: var(--header-text);
+            padding: 5px;
+            margin: -10px -10px 10px -10px;
+            font-size: 14px;
+        }
+
+        .info-row {
+            margin-bottom: 8px;
+            padding-bottom: 8px;
+            border-bottom: 1px dotted var(--panel-border);
+            display: flex;
+        }
+
+        .info-label {
+            font-weight: bold;
+            color: var(--accent-color);
+            width: 150px;
+            min-width: 150px;
+        }
+
+        .info-value {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+
+        .flag {
+            vertical-align: middle;
+            margin-right: 5px;
+            border: 1px solid var(--panel-border);
+            width: 24px;
+            height: 18px;
+        }
+
+        .country-photo {
+            width: 100px;
+            height: auto;
+            margin-left: 10px;
+            border: 1px solid var(--panel-border);
+        }
+
+        input[type="text"] {
+            width: 300px;
+            padding: 5px;
+            border: 1px solid var(--input-border);
+            background-color: var(--input-bg);
+            color: var(--text-color);
+        }
+
+        button {
+            background-color: var(--accent-color);
+            color: white;
+            border: 1px solid var(--accent-color);
+            padding: 5px 10px;
+            cursor: pointer;
+        }
+
+        button:hover {
+            background-color: var(--hover-color);
+        }
+
+        #map-container {
+            height: 400px;
+            border: 1px solid var(--panel-border);
+            margin-top: 10px;
+        }
+
+        #map-iframe {
+            width: 100%;
+            height: 100%;
+            border: none;
+        }
+
+        .whois-section {
+            margin-top: 15px;
+        }
+
+        .whois-section-title {
+            font-weight: bold;
+            color: var(--accent-color);
+            background-color: var(--panel-bg);
+            padding: 3px;
+            border-bottom: 1px solid var(--panel-border);
+        }
+
+        .whois-item {
+            margin: 5px 0;
+            padding-left: 10px;
+        }
+
+        .whois-label {
+            font-weight: bold;
+            color: var(--text-color);
+        }
+
+        .whois-value {
+            margin-left: 5px;
+        }
+
+        .whois-subitem {
+            margin-left: 20px;
+            margin-top: 3px;
+        }
+
+        .whois-link {
+            color: var(--link-color);
+            text-decoration: underline;
+        }
+
+        .whois-link:hover {
+            color: var(--hover-color);
+        }
+
+        #loading {
+            text-align: center;
+            padding: 20px;
+            display: none;
+        }
+
+        .spinner {
+            border: 3px solid rgba(0,0,0,0.1);
+            border-radius: 50%;
+            border-top: 3px solid var(--accent-color);
+            width: 20px;
+            height: 20px;
+            animation: spin 1s linear infinite;
+            display: inline-block;
+            vertical-align: middle;
+            margin-right: 10px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        #footer {
+            text-align: center;
+            margin-top: 20px;
+            font-size: 11px;
+            color: var(--accent-color);
+        }
+    </style>
+</head>
+<body>
+    <div id="container">
+        <div id="header">
+            <h1>ip.iii.vg - IP Lookup Tool</h1>
+            <button class="mode-toggle" id="mode-toggle">Dark Mode</button>
+        </div>
+
+        <div class="panel">
+            <h2>IP Lookup</h2>
+            <div style="margin-bottom: 10px; display: flex; gap: 10px; align-items: center;">
+                <input type="text" id="ip-input" placeholder="Enter IP address (e.g. 89.203.252.152)" />
+                <button id="lookup-btn">Lookup</button>
+                <button id="my-ip-btn">Use My IP</button>
+            </div>
+        </div>
+
+        <div id="loading">
+            <span class="spinner"></span> Loading IP data...
+        </div>
+
+        <div id="result-container" style="display: none;">
+            <div class="panel">
+                <h2>IP Information</h2>
+                <div id="ip-info">
+                    <!-- Filled by JavaScript -->
+                </div>
+            </div>
+
+            <div class="panel">
+                <h2>Location Map</h2>
+                <div id="map-container">
+                    <iframe id="map-iframe" title="IP Location Map"></iframe>
+                </div>
+            </div>
+
+            <div class="panel">
+                <h2>WHOIS Information</h2>
+                <div id="whois-info">
+                    <!-- Filled by JavaScript -->
+                </div>
+            </div>
+        </div>
+
+        <div id="footer">
+            &copy; <script>document.write(new Date().getFullYear())</script> ip.iii.vg
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const ipInput = document.getElementById('ip-input');
+            const lookupBtn = document.getElementById('lookup-btn');
+            const myIpBtn = document.getElementById('my-ip-btn');
+            const loading = document.getElementById('loading');
+            const resultContainer = document.getElementById('result-container');
+            const ipInfo = document.getElementById('ip-info');
+            const whoisInfo = document.getElementById('whois-info');
+            const mapIframe = document.getElementById('map-iframe');
+            const modeToggle = document.getElementById('mode-toggle');
+            let currentIpData = null;
+
+            // Dark mode toggle
+            modeToggle.addEventListener('click', function() {
+                document.body.classList.toggle('dark-mode');
+                modeToggle.textContent = document.body.classList.contains('dark-mode') ? 'Light Mode' : 'Dark Mode';
+            });
+
+            // Lookup button
+            lookupBtn.addEventListener('click', function() {
+                const ip = ipInput.value.trim();
+                if (ip) {
+                    performLookup(ip);
+                }
+            });
+
+            // My IP button
+            myIpBtn.addEventListener('click', function() {
+                loading.style.display = 'block';
+                fetch('https://api.ipify.org?format=json')
+                    .then(response => response.json())
+                    .then(data => {
+                        ipInput.value = data.ip;
+                        performLookup(data.ip);
+                    })
+                    .catch(() => {
+                        loading.style.display = 'none';
+                        alert('Could not retrieve your IP address');
+                    });
+            });
+
+            function performLookup(ip) {
+                loading.style.display = 'block';
+                resultContainer.style.display = 'none';
+                
+                ipInfo.innerHTML = '';
+                whoisInfo.innerHTML = '';
+
+                Promise.all([
+                    fetch(`https://nyanc4tt.xyz/api/iplookup?ip=${ip}`).then(res => res.json()),
+                    fetch(`https://corsproxy.io?url=https://whois.iii.vg/api/geo-lookup/${ip}`).then(res => res.json())
+                ])
+                .then(([ipData, whoisGeoData]) => {
+                    currentIpData = { ipData, whoisGeoData };
+                    displayResults(ipData, whoisGeoData);
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    alert('Failed to fetch IP data. Please try again.');
+                })
+                .finally(() => {
+                    loading.style.display = 'none';
+                    resultContainer.style.display = 'block';
+                });
+            }
+
+            function displayResults(ipData, whoisGeoData) {
+                displayIpInfo(ipData, whoisGeoData);
+                displayFormattedWhoisData(whoisGeoData);
+                updateMap();
+            }
+
+            function displayIpInfo(ipData, whoisGeoData) {
+                const countryCode = ipData.country_code.toLowerCase();
+                
+                const items = [
+                    { label: 'IP Address', value: ipData.ip },
+                    { label: 'Country', value: `${ipData.country} (${ipData.country_code})`, flag: countryCode },
+                    { label: 'Region', value: ipData.region || 'N/A' },
+                    { label: 'City', value: ipData.city || 'N/A' },
+                    { label: 'Postal Code', value: ipData.postal || 'N/A' },
+                    { label: 'Coordinates', value: `${ipData.latitude}, ${ipData.longitude}` },
+                    { label: 'Time Zone', value: whoisGeoData.location?.time_zone || 'N/A' },
+                    { label: 'ASN', value: ipData.asn || whoisGeoData.whois_data?.ip_whois?.asn || 'N/A' },
+                    { label: 'ISP', value: ipData.isp || 'N/A' },
+                    { label: 'Organization', value: whoisGeoData.whois_data?.ip_whois?.objects?.['ORG-CTa3-RIPE']?.contact?.name || 'N/A' }
+                ];
+
+                items.forEach(item => {
+                    const row = document.createElement('div');
+                    row.className = 'info-row';
+                    
+                    const label = document.createElement('div');
+                    label.className = 'info-label';
+                    label.textContent = item.label;
+                    
+                    const value = document.createElement('div');
+                    value.className = 'info-value';
+                    
+                    if (item.flag) {
+                        const flagImg = document.createElement('img');
+                        flagImg.src = `https://browserleaks.com/img/flags/${item.flag.toUpperCase()}.png`;
+                        flagImg.className = 'flag';
+                        flagImg.alt = '';
+                        value.appendChild(flagImg);
+                    }
+                    
+                    value.appendChild(document.createTextNode(item.value));
+                    
+                    row.appendChild(label);
+                    row.appendChild(value);
+                    ipInfo.appendChild(row);
+                });
+            }
+
+            function displayFormattedWhoisData(whoisGeoData) {
+                const whoisData = whoisGeoData.whois_data?.ip_whois;
+                if (!whoisData) {
+                    whoisInfo.innerHTML = '<div class="whois-item">No WHOIS data available for this IP address.</div>';
+                    return;
+                }
+
+                let html = '';
+
+                // Network Information
+                if (whoisData.network) {
+                    const net = whoisData.network;
+                    html += '<div class="whois-section">';
+                    html += '<div class="whois-section-title">Network Information</div>';
+                    
+                    html += `<div class="whois-item"><span class="whois-label">ASN:</span> <span class="whois-value">${whoisData.asn || 'N/A'}</span></div>`;
+                    html += `<div class="whois-item"><span class="whois-label">ASN Description:</span> <span class="whois-value">${whoisData.asn_description || 'N/A'}</span></div>`;
+                    html += `<div class="whois-item"><span class="whois-label">Network Range:</span> <span class="whois-value">${net.handle || 'N/A'}</span></div>`;
+                    html += `<div class="whois-item"><span class="whois-label">CIDR:</span> <span class="whois-value">${net.cidr || 'N/A'}</span></div>`;
+                    html += `<div class="whois-item"><span class="whois-label">IP Version:</span> <span class="whois-value">${net.ip_version || 'N/A'}</span></div>`;
+                    
+                    // Format registration and last changed dates
+                    if (net.events && net.events.length > 0) {
+                        net.events.forEach(event => {
+                            if (event.action === 'registration' || event.action === 'last changed') {
+                                const date = formatDate(event.timestamp);
+                                html += `<div class="whois-item"><span class="whois-label">${event.action === 'registration' ? 'Registered' : 'Last Changed'}:</span> <span class="whois-value">${date}</span></div>`;
+                            }
+                        });
+                    }
+                    
+                    // Country with photo
+                    if (net.country) {
+                        const countryCode = net.country.toLowerCase();
+                        html += `<div class="whois-item"><span class="whois-label">Country:</span> <span class="whois-value">${net.country} <img src="https://browserleaks.com/img/flags/${countryCode.toUpperCase()}.png" class="flag" alt="">`;
+                    }
+                    
+                    // Links
+                    if (net.links && net.links.length > 0) {
+                        html += '<div class="whois-subitem"><span class="whois-label">Links:</span>';
+                        net.links.forEach(link => {
+                            html += `<div class="whois-subitem"><a href="${link}" class="whois-link" target="_blank">${link}</a></div>`;
+                        });
+                        html += '</div>';
+                    }
+                    
+                    // Notices
+                    if (net.notices && net.notices.length > 0) {
+                        html += '<div class="whois-subitem"><span class="whois-label">Notices:</span>';
+                        net.notices.forEach(notice => {
+                            html += `<div class="whois-subitem">${notice.title || 'Notice'}: ${notice.description || ''}`;
+                            if (notice.links && notice.links.length > 0) {
+                                html += '<div class="whois-subitem"><span class="whois-label">Links:</span>';
+                                notice.links.forEach(link => {
+                                    html += `<div class="whois-subitem"><a href="${link}" class="whois-link" target="_blank">${link}</a></div>`;
+                                });
+                                html += '</div>';
+                            }
+                            html += '</div>';
+                        });
+                        html += '</div>';
+                    }
+                    
+                    html += '</div>';
+                }
+                
+                // Objects
+                if (whoisData.objects) {
+                    html += '<div class="whois-section">';
+                    html += '<div class="whois-section-title">Objects</div>';
+                    
+                    for (const [key, obj] of Object.entries(whoisData.objects)) {
+                        html += `<div class="whois-item"><span class="whois-label">${key}:</span> <span class="whois-value">${obj.handle || 'N/A'}</span></div>`;
+                        
+                        if (obj.contact) {
+                            const contact = obj.contact;
+                            html += '<div class="whois-subitem"><span class="whois-label">Contact:</span>';
+                            html += `<div class="whois-subitem"><span class="whois-label">Name:</span> <span class="whois-value">${contact.name || 'N/A'}</span></div>`;
+                            
+                            if (contact.address) {
+                                html += '<div class="whois-subitem"><span class="whois-label">Address:</span>';
+                                contact.address.forEach(addr => {
+                                    html += `<div class="whois-subitem">${addr.value || 'N/A'}</div>`;
+                                });
+                                html += '</div>';
+                            }
+                            
+                            if (contact.phone) {
+                                html += '<div class="whois-subitem"><span class="whois-label">Phone:</span>';
+                                contact.phone.forEach(phone => {
+                                    html += `<div class="whois-subitem">${phone.type || ''}: ${phone.value || 'N/A'}</div>`;
+                                });
+                                html += '</div>';
+                            }
+                            
+                            if (contact.email) {
+                                html += '<div class="whois-subitem"><span class="whois-label">Email:</span>';
+                                contact.email.forEach(email => {
+                                    html += `<div class="whois-subitem">${email.type || ''}: ${email.value || 'N/A'}</div>`;
+                                });
+                                html += '</div>';
+                            }
+                            
+                            html += '</div>';
+                        }
+                        
+                        if (obj.links && obj.links.length > 0) {
+                            html += '<div class="whois-subitem"><span class="whois-label">Links:</span>';
+                            obj.links.forEach(link => {
+                                html += `<div class="whois-subitem"><a href="${link}" class="whois-link" target="_blank">${link}</a></div>`;
+                            });
+                            html += '</div>';
+                        }
+                    }
+                    
+                    html += '</div>';
+                }
+                
+                whoisInfo.innerHTML = html;
+            }
+
+            function formatDate(isoString) {
+                if (!isoString) return 'N/A';
+                const date = new Date(isoString);
+                return date.toLocaleString();
+            }
+
+            function updateMap() {
+                if (!currentIpData) return;
+                
+                const { ipData } = currentIpData;
+                const lat = ipData.latitude;
+                const lng = ipData.longitude;
+                
+                // Use OpenStreetMap with static image as fallback
+                const mapUrl = `https://www.openstreetmap.org/export/embed.html?bbox=${lng-0.1}%2C${lat-0.1}%2C${lng+0.1}%2C${lat+0.1}&layer=mapnik&marker=${lat}%2C${lng}`;
+                mapIframe.src = mapUrl;
+                mapIframe.title = `IP Location: ${ipData.ip}`;
+            }
+        });
+    </script>
+</body>
+</html>
