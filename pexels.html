@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>simple pexels converter</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            font-family: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+        }
+        body {
+            background: #111;
+            min-height: 100vh;
+            margin: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 16px;
+        }
+        .panel {
+            background: #1a1a1a;
+            width: 100%;
+            max-width: 700px;
+            padding: 25px;
+            border-radius: 16px;
+            border: 1px solid #333;
+        }
+        h3 {
+            color: #ccc;
+            font-weight: 400;
+            margin: 0 0 20px 0;
+            font-size: 18px;
+        }
+        label {
+            color: #aaa;
+            display: block;
+            margin-bottom: 6px;
+            font-size: 14px;
+        }
+        input, textarea {
+            width: 100%;
+            background: #222;
+            border: 1px solid #444;
+            border-radius: 8px;
+            padding: 14px;
+            color: #eee;
+            font-size: 15px;
+            margin-bottom: 20px;
+        }
+        input:focus, textarea:focus {
+            outline: none;
+            border-color: #666;
+        }
+        button {
+            width: 100%;
+            background: #2a2a2a;
+            border: 1px solid #555;
+            border-radius: 40px;
+            padding: 20px;
+            font-size: 22px;
+            font-weight: 500;
+            color: #fff;
+            margin-bottom: 25px;
+            cursor: pointer;
+        }
+        button:hover {
+            background: #333;
+        }
+        button:active {
+            background: #1f1f1f;
+        }
+        .result-label {
+            color: #aaa;
+            margin-bottom: 5px;
+            font-size: 13px;
+        }
+        textarea {
+            margin-bottom: 5px;
+            height: 80px;
+            resize: none;
+        }
+        .footnote {
+            color: #666;
+            font-size: 13px;
+            margin-top: 5px;
+        }
+    </style>
+</head>
+<body>
+<div class="panel">
+    <h3>pexels → direct image</h3>
+
+    <label>1. paste pexels url here</label>
+    <input type="text" id="inputBox" placeholder="https://www.pexels.com/photo/camel-3958516/" value="https://www.pexels.com/photo/person-riding-a-camel-3958516/">
+
+    <button id="convertBtn">🔁 CONVERT</button>
+
+    <label>2. copy this</label>
+    <textarea id="resultBox" readonly></textarea>
+    <div class="footnote">last number in url becomes the image id</div>
+</div>
+
+<script>
+    const inputBox = document.getElementById('inputBox');
+    const convertBtn = document.getElementById('convertBtn');
+    const resultBox = document.getElementById('resultBox');
+
+    function convert() {
+        let url = inputBox.value.trim();
+        if (!url) {
+            resultBox.value = 'paste something first';
+            return;
+        }
+
+        // find any group of 4+ digits (the photo id)
+        let match = url.match(/(\d{4,})/);
+        if (match) {
+            let id = match[1];
+            resultBox.value = `https://images.pexels.com/photos/${id}/pexels-photo-${id}.jpeg`;
+        } else {
+            resultBox.value = 'no photo id found in that url';
+        }
+    }
+
+    convertBtn.addEventListener('click', convert);
+
+    // optional: select all when clicking in result box (easier to copy)
+    resultBox.addEventListener('click', function() {
+        this.select();
+    });
+
+    // run once to show example
+    convert();
+</script>
+</body>
+</html>
